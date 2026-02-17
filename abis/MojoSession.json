@@ -1,0 +1,16 @@
+[
+  "function createSession(uint8 exerciseType, uint256 targetReps) returns (uint256)",
+  "function placeBet(uint256 sessionId, bool isUp) payable",
+  "function resolveSession(uint256 sessionId, uint256 actualReps)",
+  "function claimBet(uint256 sessionId)",
+  "function getSession(uint256 sessionId) view returns (tuple(address exerciser, uint8 exerciseType, uint256 targetReps, uint256 actualReps, uint256 startTime, uint8 status, uint256 totalUpBets, uint256 totalDownBets))",
+  "function nextSessionId() view returns (uint256)",
+  "function sessions(uint256) view returns (address exerciser, uint8 exerciseType, uint256 targetReps, uint256 actualReps, uint256 startTime, uint8 status, uint256 totalUpBets, uint256 totalDownBets)",
+  "function bets(uint256, address) view returns (uint256 amount, bool isUp, bool claimed)",
+  "function SESSION_TIMEOUT() view returns (uint256)",
+  "function MOJO_PER_REP() view returns (uint256)",
+  "event SessionCreated(uint256 indexed sessionId, address indexed exerciser, uint8 exerciseType, uint256 targetReps)",
+  "event BetPlaced(uint256 indexed sessionId, address indexed bettor, bool isUp, uint256 amount)",
+  "event SessionResolved(uint256 indexed sessionId, uint256 actualReps, bool targetMet)",
+  "event BetClaimed(uint256 indexed sessionId, address indexed bettor, uint256 payout)"
+]

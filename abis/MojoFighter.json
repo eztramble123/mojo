@@ -1,0 +1,18 @@
+[
+  "function createFighter()",
+  "function syncStats(uint256 sessionId)",
+  "function challenge(address opponent) payable returns (uint256)",
+  "function acceptChallenge(uint256 challengeId) payable",
+  "function resolveBattle(uint256 challengeId)",
+  "function cancelChallenge(uint256 challengeId)",
+  "function getFighter(address addr) view returns (tuple(uint256 strength, uint256 agility, uint256 endurance, uint256 totalReps, uint256 level, uint256 wins, uint256 losses, bool exists))",
+  "function getChallenge(uint256 challengeId) view returns (tuple(address challenger, address opponent, uint256 wager, uint8 status, address winner))",
+  "function fighters(address) view returns (uint256 strength, uint256 agility, uint256 endurance, uint256 totalReps, uint256 level, uint256 wins, uint256 losses, bool exists)",
+  "function challenges(uint256) view returns (address challenger, address opponent, uint256 wager, uint8 status, address winner)",
+  "function nextChallengeId() view returns (uint256)",
+  "event FighterCreated(address indexed owner)",
+  "event StatsUpdated(address indexed owner, uint256 strength, uint256 agility, uint256 endurance)",
+  "event ChallengeCreated(uint256 indexed challengeId, address indexed challenger, address indexed opponent, uint256 wager)",
+  "event ChallengeAccepted(uint256 indexed challengeId)",
+  "event BattleResolved(uint256 indexed challengeId, address indexed winner, uint256 payout)"
+]

@@ -1,0 +1,14 @@
+[
+  "function name() view returns (string)",
+  "function symbol() view returns (string)",
+  "function balanceOf(address account) view returns (uint256)",
+  "function totalSupply() view returns (uint256)",
+  "function transfer(address to, uint256 amount) returns (bool)",
+  "function approve(address spender, uint256 amount) returns (bool)",
+  "function allowance(address owner, address spender) view returns (uint256)",
+  "function mint(address to, uint256 amount)",
+  "function setMinter(address minter, bool authorized)",
+  "function authorizedMinters(address) view returns (bool)",
+  "event Transfer(address indexed from, address indexed to, uint256 value)",
+  "event Approval(address indexed owner, address indexed spender, uint256 value)"
+]
