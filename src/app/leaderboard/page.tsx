@@ -1,23 +1,48 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import LeaderboardComponent from "@/components/Leaderboard";
 import { clsx } from "clsx";
 
 type Tab = "reps" | "level" | "wins" | "mojo";
 
+const TAB_TO_SORT: Record<Tab, string> = {
+  reps: "totalReps",
+  level: "level",
+  wins: "wins",
+  mojo: "totalReps",
+};
+
+interface LeaderboardEntry {
+  rank: number;
+  address: string;
+  username?: string;
+  value: string;
+  label: string;
+}
+
 export default function LeaderboardPage() {
   const [activeTab, setActiveTab] = useState<Tab>("reps");
+  const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // In a production app, you'd query contract events or use a subgraph for rankings.
-  // For the hackathon, we show the UI with placeholder data.
-  const placeholderEntries = [
-    { rank: 1, address: "0x1234567890abcdef1234567890abcdef12345678", value: "450", label: "reps" },
-    { rank: 2, address: "0xabcdef1234567890abcdef1234567890abcdef12", value: "320", label: "reps" },
-    { rank: 3, address: "0x7890abcdef1234567890abcdef1234567890abcd", value: "280", label: "reps" },
-    { rank: 4, address: "0xdef1234567890abcdef1234567890abcdef123456", value: "150", label: "reps" },
-    { rank: 5, address: "0x567890abcdef1234567890abcdef1234567890ab", value: "95", label: "reps" },
-  ];
+  useEffect(() => {
+    setLoading(true);
+    fetch(`/api/leaderboard?sort=${TAB_TO_SORT[activeTab]}&limit=20`)
+      .then((r) => r.json())
+      .then((data) => {
+        setEntries(
+          data.map((d: LeaderboardEntry) => ({
+            rank: d.rank,
+            address: d.address,
+            value: d.value,
+            label: activeTab,
+          }))
+        );
+      })
+      .catch(() => setEntries([]))
+      .finally(() => setLoading(false));
+  }, [activeTab]);
 
   const tabs: { id: Tab; label: string }[] = [
     { id: "reps", label: "Total Reps" },
@@ -28,7 +53,7 @@ export default function LeaderboardPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
-      <h1 className="text-3xl font-bold text-white mb-8">Leaderboard</h1>
+      <h1 className="text-3xl font-semibold text-wii-ink mb-8">Leaderboard</h1>
 
       <div className="flex gap-2 mb-6">
         {tabs.map((tab) => (
@@ -36,10 +61,10 @@ export default function LeaderboardPage() {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={clsx(
-              "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+              "px-4 py-2 rounded-full text-sm font-medium transition-colors",
               activeTab === tab.id
-                ? "bg-mojo-purple text-white"
-                : "bg-mojo-card text-gray-400 hover:text-white border border-mojo-border"
+                ? "bg-studio-blue text-white shadow-glass"
+                : "bg-white text-wii-muted hover:text-wii-ink border border-wii-glass"
             )}
           >
             {tab.label}
@@ -47,20 +72,21 @@ export default function LeaderboardPage() {
         ))}
       </div>
 
-      <LeaderboardComponent
-        title={tabs.find((t) => t.id === activeTab)?.label || ""}
-        entries={placeholderEntries.map((e) => ({
-          ...e,
-          label: activeTab,
-        }))}
-      />
-
-      <div className="mt-8 bg-mojo-card border border-mojo-border rounded-xl p-6 text-center">
-        <p className="text-gray-400 text-sm">
-          Rankings are computed from on-chain data. In production, this would use an indexer or subgraph
-          to aggregate fighter stats and session results across all users.
-        </p>
-      </div>
+      {loading ? (
+        <div className="glass-card p-12 text-center">
+          <div className="w-8 h-8 border-2 border-studio-blue border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+          <p className="text-wii-muted">Loading...</p>
+        </div>
+      ) : entries.length === 0 ? (
+        <div className="glass-card p-12 text-center">
+          <p className="text-wii-muted">No fighters ranked yet. Create a fighter and start exercising!</p>
+        </div>
+      ) : (
+        <LeaderboardComponent
+          title={tabs.find((t) => t.id === activeTab)?.label || ""}
+          entries={entries}
+        />
+      )}
     </div>
   );
 }

@@ -22,7 +22,6 @@ export default function BattleArena({ challenger, defender, winner, onComplete }
     const sim = simulateBattle(challenger.fighter, defender.fighter, winSide);
     setResult(sim);
 
-    // Animate rounds
     let round = 0;
     const interval = setInterval(() => {
       round++;
@@ -40,14 +39,14 @@ export default function BattleArena({ challenger, defender, winner, onComplete }
   }, [challenger, defender, winner, onComplete]);
 
   return (
-    <div className="bg-mojo-card border border-mojo-border rounded-xl p-6">
-      <h3 className="text-xl font-bold text-white text-center mb-6">BATTLE!</h3>
+    <div className="glass-card p-6">
+      <h3 className="text-xl font-semibold text-wii-ink text-center mb-6">BATTLE!</h3>
 
       <div className="grid grid-cols-2 gap-6 mb-6">
-        <div className={showResult && winner.toLowerCase() === challenger.address.toLowerCase() ? "ring-2 ring-mojo-green rounded-xl" : ""}>
+        <div className={showResult && winner.toLowerCase() === challenger.address.toLowerCase() ? "ring-2 ring-mojo-green rounded-glass" : ""}>
           <FighterCard address={challenger.address} fighter={challenger.fighter} />
         </div>
-        <div className={showResult && winner.toLowerCase() === defender.address.toLowerCase() ? "ring-2 ring-mojo-green rounded-xl" : ""}>
+        <div className={showResult && winner.toLowerCase() === defender.address.toLowerCase() ? "ring-2 ring-mojo-green rounded-glass" : ""}>
           <FighterCard address={defender.address} fighter={defender.fighter} />
         </div>
       </div>
@@ -55,17 +54,17 @@ export default function BattleArena({ challenger, defender, winner, onComplete }
       {result && (
         <div className="space-y-2 mb-4">
           {result.rounds.slice(0, currentRound).map((round, i) => (
-            <div key={i} className="bg-mojo-dark rounded-lg p-3 text-sm text-gray-300 animate-slide-up">
-              <span className="text-mojo-orange font-medium">Round {i + 1}:</span> {round.description}
+            <div key={i} className="bg-wii-mist rounded-xl p-3 text-sm text-wii-muted animate-slide-up">
+              <span className="text-ring-orange font-medium">Round {i + 1}:</span> {round.description}
             </div>
           ))}
         </div>
       )}
 
       {showResult && (
-        <div className="text-center py-4 bg-mojo-green/10 border border-mojo-green/30 rounded-lg animate-slide-up">
+        <div className="text-center py-4 bg-mojo-green/10 border border-mojo-green/20 rounded-xl animate-slide-up">
           <div className="text-2xl font-bold text-mojo-green mb-1">WINNER!</div>
-          <div className="text-white">
+          <div className="text-wii-ink font-medium">
             {winner.slice(0, 6)}...{winner.slice(-4)}
           </div>
         </div>

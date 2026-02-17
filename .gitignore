@@ -33,8 +33,17 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# prisma
+prisma/*.db
+prisma/*.db-journal
+*.db
+*.db-journal
+.env
+
 # contracts
 contracts/node_modules
 contracts/cache
 contracts/artifacts
 contracts/typechain-types
+
+/src/generated/prisma

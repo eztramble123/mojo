@@ -25,33 +25,33 @@ export default function BettingPanel({ sessionId, session }: Props) {
   const targetMet = session.actualReps >= session.targetReps;
 
   return (
-    <div className="bg-mojo-card border border-mojo-border rounded-xl p-5 space-y-4">
-      <h3 className="text-lg font-bold text-white">Betting Pool</h3>
+    <div className="glass-card p-5 space-y-4">
+      <h3 className="text-lg font-semibold text-wii-ink">Betting Pool</h3>
 
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-mojo-green/10 border border-mojo-green/30 rounded-lg p-3 text-center">
-          <div className="text-xs text-mojo-green mb-1">MAKES IT</div>
-          <div className="text-lg font-bold text-white">{formatEther(session.totalUpBets)} MON</div>
+        <div className="bg-mojo-green/8 border border-mojo-green/20 rounded-xl p-3 text-center">
+          <div className="text-xs text-mojo-green mb-1 font-medium uppercase tracking-wide">Makes it</div>
+          <div className="text-lg font-bold text-wii-ink">{formatEther(session.totalUpBets)} MON</div>
         </div>
-        <div className="bg-mojo-red/10 border border-mojo-red/30 rounded-lg p-3 text-center">
-          <div className="text-xs text-mojo-red mb-1">MISSES</div>
-          <div className="text-lg font-bold text-white">{formatEther(session.totalDownBets)} MON</div>
+        <div className="bg-mojo-red/8 border border-mojo-red/20 rounded-xl p-3 text-center">
+          <div className="text-xs text-mojo-red mb-1 font-medium uppercase tracking-wide">Misses</div>
+          <div className="text-lg font-bold text-wii-ink">{formatEther(session.totalDownBets)} MON</div>
         </div>
       </div>
 
-      <div className="text-center text-sm text-gray-400">
-        Total Pool: <span className="text-white font-medium">{formatEther(totalPool)} MON</span>
+      <div className="text-center text-sm text-wii-muted">
+        Total Pool: <span className="text-wii-ink font-semibold">{formatEther(totalPool)} MON</span>
       </div>
 
       {!hasBet && session.status === SessionStatus.Active && address && (
         <>
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Bet Amount (MON)</label>
+            <label className="block text-xs text-wii-muted mb-1 font-medium uppercase tracking-wide">Bet Amount (MON)</label>
             <input
               type="number"
               value={betAmount}
               onChange={(e) => setBetAmount(e.target.value)}
-              className="w-full px-3 py-2 bg-mojo-dark border border-mojo-border rounded-lg text-white text-sm"
+              className="w-full px-3 py-2 bg-wii-mist border border-wii-glass rounded-xl text-wii-ink text-sm focus:outline-none focus:border-studio-blue transition-colors"
               min="0.001"
               step="0.01"
             />
@@ -60,14 +60,14 @@ export default function BettingPanel({ sessionId, session }: Props) {
             <button
               onClick={() => placeBet(sessionId, true, betAmount)}
               disabled={isBetting}
-              className="py-2 bg-mojo-green hover:bg-mojo-green/80 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+              className="py-2.5 bg-mojo-green hover:bg-mojo-green/90 text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
             >
               {isBetting ? "..." : "Bet They Make It"}
             </button>
             <button
               onClick={() => placeBet(sessionId, false, betAmount)}
               disabled={isBetting}
-              className="py-2 bg-mojo-red hover:bg-mojo-red/80 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+              className="py-2.5 bg-mojo-red hover:bg-mojo-red/90 text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
             >
               {isBetting ? "..." : "Bet They Miss"}
             </button>
@@ -77,8 +77,8 @@ export default function BettingPanel({ sessionId, session }: Props) {
 
       {hasBet && (
         <div className="text-center text-sm">
-          <span className="text-gray-400">Your bet: </span>
-          <span className={clsx("font-medium", bet![1] ? "text-mojo-green" : "text-mojo-red")}>
+          <span className="text-wii-muted">Your bet: </span>
+          <span className={clsx("font-semibold", bet![1] ? "text-mojo-green" : "text-mojo-red")}>
             {formatEther(bet![0])} MON {bet![1] ? "UP" : "DOWN"}
           </span>
         </div>
@@ -88,7 +88,7 @@ export default function BettingPanel({ sessionId, session }: Props) {
         <button
           onClick={() => claimBet(sessionId)}
           disabled={isClaiming}
-          className="w-full py-2 bg-mojo-orange hover:bg-mojo-orange/80 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+          className="w-full py-2.5 bg-ring-orange hover:bg-ring-orange/90 text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
         >
           {isClaiming ? "Claiming..." : "Claim Winnings"}
         </button>

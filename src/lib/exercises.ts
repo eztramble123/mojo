@@ -1,9 +1,9 @@
 import { ExerciseType, Keypoint, ExercisePhase } from "@/types";
 import { calculateAngle, getKeypoint, isKeypointValid } from "./poseUtils";
 
-const MIN_CONFIDENCE = 0.3;
-const STABLE_FRAMES_REQUIRED = 3;
-const MIN_REP_INTERVAL_MS = 500;
+const MIN_CONFIDENCE = 0.5;
+const STABLE_FRAMES_REQUIRED = 5;
+const MIN_REP_INTERVAL_MS = 800;
 
 interface ExerciseCheck {
   phase: ExercisePhase | null;
@@ -11,24 +11,38 @@ interface ExerciseCheck {
 
 /**
  * Detect pushup phase from keypoints.
- * Tracks elbow angle (shoulder-elbow-wrist).
- * Down: < 90 degrees, Up: > 160 degrees
+ * Requires plank position (body horizontal) and both arms visible.
+ * Down: avg elbow angle < 90°, Up: avg elbow angle > 160°
  */
 function detectPushups(keypoints: Keypoint[]): ExerciseCheck {
-  const shoulder = getKeypoint(keypoints, "left_shoulder") || getKeypoint(keypoints, "right_shoulder");
-  const elbow = getKeypoint(keypoints, "left_elbow") || getKeypoint(keypoints, "right_elbow");
-  const wrist = getKeypoint(keypoints, "left_wrist") || getKeypoint(keypoints, "right_wrist");
+  const lShoulder = getKeypoint(keypoints, "left_shoulder");
+  const rShoulder = getKeypoint(keypoints, "right_shoulder");
+  const lElbow = getKeypoint(keypoints, "left_elbow");
+  const rElbow = getKeypoint(keypoints, "right_elbow");
+  const lWrist = getKeypoint(keypoints, "left_wrist");
+  const rWrist = getKeypoint(keypoints, "right_wrist");
+  const hip = getKeypoint(keypoints, "left_hip") || getKeypoint(keypoints, "right_hip");
 
-  if (!isKeypointValid(shoulder, MIN_CONFIDENCE) ||
-      !isKeypointValid(elbow, MIN_CONFIDENCE) ||
-      !isKeypointValid(wrist, MIN_CONFIDENCE)) {
+  // Require ALL keypoints at high confidence
+  const allPoints = [lShoulder, rShoulder, lElbow, rElbow, lWrist, rWrist, hip];
+  if (allPoints.some((kp) => !isKeypointValid(kp, MIN_CONFIDENCE))) {
     return { phase: null };
   }
 
-  const angle = calculateAngle(shoulder!, elbow!, wrist!);
+  // Plank position check: shoulder and hip Y should be close (body horizontal)
+  // Standing person: shoulder.y << hip.y; plank person: similar Y values
+  const avgShoulderY = (lShoulder!.y + rShoulder!.y) / 2;
+  if (Math.abs(avgShoulderY - hip!.y) / Math.max(avgShoulderY, hip!.y, 1) > 0.3) {
+    return { phase: null };
+  }
 
-  if (angle < 90) return { phase: "down" };
-  if (angle > 160) return { phase: "up" };
+  // Average both elbow angles
+  const leftAngle = calculateAngle(lShoulder!, lElbow!, lWrist!);
+  const rightAngle = calculateAngle(rShoulder!, rElbow!, rWrist!);
+  const avgAngle = (leftAngle + rightAngle) / 2;
+
+  if (avgAngle < 90) return { phase: "down" };
+  if (avgAngle > 160) return { phase: "up" };
   return { phase: null };
 }
 
@@ -57,24 +71,44 @@ function detectSquats(keypoints: Keypoint[]): ExerciseCheck {
 
 /**
  * Detect jumping jack phase from keypoints.
- * Tracks shoulder angle (hip-shoulder-wrist).
- * Down (arms at sides): < 50 degrees, Up (arms raised): > 140 degrees
+ * Requires both arms AND legs to agree on phase.
+ * Up: arms raised (>140°) + legs apart (>1.5x hip width)
+ * Down: arms at sides (<50°) + legs together (<1.0x hip width)
  */
 function detectJumpingJacks(keypoints: Keypoint[]): ExerciseCheck {
-  const hip = getKeypoint(keypoints, "left_hip") || getKeypoint(keypoints, "right_hip");
-  const shoulder = getKeypoint(keypoints, "left_shoulder") || getKeypoint(keypoints, "right_shoulder");
-  const wrist = getKeypoint(keypoints, "left_wrist") || getKeypoint(keypoints, "right_wrist");
+  const lHip = getKeypoint(keypoints, "left_hip");
+  const rHip = getKeypoint(keypoints, "right_hip");
+  const lShoulder = getKeypoint(keypoints, "left_shoulder");
+  const rShoulder = getKeypoint(keypoints, "right_shoulder");
+  const lWrist = getKeypoint(keypoints, "left_wrist");
+  const rWrist = getKeypoint(keypoints, "right_wrist");
+  const lAnkle = getKeypoint(keypoints, "left_ankle");
+  const rAnkle = getKeypoint(keypoints, "right_ankle");
 
-  if (!isKeypointValid(hip, MIN_CONFIDENCE) ||
-      !isKeypointValid(shoulder, MIN_CONFIDENCE) ||
-      !isKeypointValid(wrist, MIN_CONFIDENCE)) {
+  // Require ALL keypoints at high confidence
+  const allPoints = [lHip, rHip, lShoulder, rShoulder, lWrist, rWrist, lAnkle, rAnkle];
+  if (allPoints.some((kp) => !isKeypointValid(kp, MIN_CONFIDENCE))) {
     return { phase: null };
   }
 
-  const angle = calculateAngle(hip!, shoulder!, wrist!);
+  // Arm angle (average both sides)
+  const leftArmAngle = calculateAngle(lHip!, lShoulder!, lWrist!);
+  const rightArmAngle = calculateAngle(rHip!, rShoulder!, rWrist!);
+  const avgArmAngle = (leftArmAngle + rightArmAngle) / 2;
 
-  if (angle < 50) return { phase: "down" };
-  if (angle > 140) return { phase: "up" };
+  // Leg spread ratio
+  const hipWidth = Math.abs(lHip!.x - rHip!.x);
+  const ankleSpread = Math.abs(lAnkle!.x - rAnkle!.x);
+  const spreadRatio = ankleSpread / Math.max(hipWidth, 1);
+
+  // Both arms AND legs must agree on phase
+  const armsUp = avgArmAngle > 140;
+  const armsDown = avgArmAngle < 50;
+  const legsApart = spreadRatio > 1.5;
+  const legsTogether = spreadRatio < 1.0;
+
+  if (armsUp && legsApart) return { phase: "up" };
+  if (armsDown && legsTogether) return { phase: "down" };
   return { phase: null };
 }
 

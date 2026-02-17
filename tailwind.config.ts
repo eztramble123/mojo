@@ -9,29 +9,63 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Wii Fit Studio - Neutrals
+        wii: {
+          white: "#F7FBFF",
+          mist: "#EAF3FA",
+          glass: "#CFE6F2",
+          ink: "#11202B",
+          muted: "#516777",
+        },
+        // Studio blues
+        studio: {
+          blue: "#4C79D8",
+          aqua: "#7FE3E6",
+          teal: "#23C6C8",
+        },
+        // Ring accents
+        ring: {
+          orange: "#FF9A3D",
+          blue: "#2D8CFF",
+          pink: "#FF4FA7",
+        },
+        // Keep functional colors
         mojo: {
-          purple: "#7C3AED",
-          blue: "#3B82F6",
           green: "#10B981",
-          orange: "#F59E0B",
           red: "#EF4444",
-          dark: "#0F0F1A",
-          card: "#1A1A2E",
-          border: "#2A2A40",
+          orange: "#FF9A3D",
+          purple: "#4C79D8",
         },
       },
+      fontFamily: {
+        sans: ["Inter", "system-ui", "sans-serif"],
+      },
+      borderRadius: {
+        glass: "20px",
+      },
+      boxShadow: {
+        glass: "0 8px 32px rgba(76, 121, 216, 0.08)",
+        "glass-hover": "0 12px 40px rgba(76, 121, 216, 0.15)",
+        float: "0 4px 20px rgba(0, 0, 0, 0.06)",
+        ring: "0 0 24px rgba(45, 140, 255, 0.3)",
+      },
       animation: {
-        "pulse-glow": "pulse-glow 2s ease-in-out infinite",
+        "pulse-ring": "pulse-ring 2s ease-in-out infinite",
         "slide-up": "slide-up 0.3s ease-out",
+        "float": "float 3s ease-in-out infinite",
       },
       keyframes: {
-        "pulse-glow": {
-          "0%, 100%": { boxShadow: "0 0 20px rgba(124, 58, 237, 0.3)" },
-          "50%": { boxShadow: "0 0 40px rgba(124, 58, 237, 0.6)" },
+        "pulse-ring": {
+          "0%, 100%": { boxShadow: "0 0 16px rgba(45, 140, 255, 0.2)" },
+          "50%": { boxShadow: "0 0 32px rgba(45, 140, 255, 0.5)" },
         },
         "slide-up": {
           "0%": { transform: "translateY(10px)", opacity: "0" },
           "100%": { transform: "translateY(0)", opacity: "1" },
+        },
+        "float": {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-6px)" },
         },
       },
     },

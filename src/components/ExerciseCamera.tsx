@@ -17,7 +17,6 @@ export default function ExerciseCamera({ exerciseType, onKeypoints, onStreamRead
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { isLoading, error, keypoints, loadModel, startDetection, stopDetection } = usePoseDetection();
 
-  // Start webcam
   useEffect(() => {
     if (!isActive) return;
     let stream: MediaStream | null = null;
@@ -43,7 +42,6 @@ export default function ExerciseCamera({ exerciseType, onKeypoints, onStreamRead
     };
   }, [isActive, onStreamReady]);
 
-  // Load model and start detection
   useEffect(() => {
     if (!isActive) return;
     loadModel();
@@ -56,7 +54,6 @@ export default function ExerciseCamera({ exerciseType, onKeypoints, onStreamRead
     return () => stopDetection();
   }, [isLoading, error, isActive, startDetection, stopDetection]);
 
-  // Forward keypoints and draw skeleton
   useEffect(() => {
     if (keypoints.length > 0) {
       onKeypoints(keypoints);
@@ -70,7 +67,7 @@ export default function ExerciseCamera({ exerciseType, onKeypoints, onStreamRead
   }, [keypoints, onKeypoints]);
 
   return (
-    <div className="relative rounded-xl overflow-hidden bg-black">
+    <div className="relative rounded-glass overflow-hidden bg-wii-ink shadow-glass">
       <video
         ref={videoRef}
         className="w-full h-auto mirror"
@@ -86,15 +83,15 @@ export default function ExerciseCamera({ exerciseType, onKeypoints, onStreamRead
         style={{ transform: "scaleX(-1)" }}
       />
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/70">
+        <div className="absolute inset-0 flex items-center justify-center bg-wii-ink/70">
           <div className="text-center">
-            <div className="w-8 h-8 border-2 border-mojo-purple border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-            <p className="text-gray-400 text-sm">Loading pose detection...</p>
+            <div className="w-8 h-8 border-2 border-studio-blue border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+            <p className="text-wii-mist text-sm">Loading pose detection...</p>
           </div>
         </div>
       )}
       {error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/70">
+        <div className="absolute inset-0 flex items-center justify-center bg-wii-ink/70">
           <p className="text-mojo-red text-sm">Error: {error}</p>
         </div>
       )}

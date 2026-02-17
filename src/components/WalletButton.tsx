@@ -20,7 +20,7 @@ export default function WalletButton() {
                 return (
                   <button
                     onClick={openConnectModal}
-                    className="px-4 py-2 bg-mojo-purple hover:bg-mojo-purple/80 rounded-lg font-medium text-white transition-colors"
+                    className="px-5 py-2 bg-studio-blue hover:bg-studio-blue/90 rounded-full font-medium text-white text-sm transition-colors shadow-glass"
                   >
                     Connect Wallet
                   </button>
@@ -31,7 +31,7 @@ export default function WalletButton() {
                 return (
                   <button
                     onClick={openChainModal}
-                    className="px-4 py-2 bg-mojo-red hover:bg-mojo-red/80 rounded-lg font-medium text-white transition-colors"
+                    className="px-5 py-2 bg-mojo-red hover:bg-mojo-red/90 rounded-full font-medium text-white text-sm transition-colors"
                   >
                     Wrong Network
                   </button>
@@ -41,7 +41,7 @@ export default function WalletButton() {
               return (
                 <button
                   onClick={openAccountModal}
-                  className="px-4 py-2 bg-mojo-card border border-mojo-border hover:border-mojo-purple rounded-lg font-medium text-white transition-colors"
+                  className="px-5 py-2 bg-white border border-wii-glass hover:border-studio-blue rounded-full font-medium text-wii-ink text-sm transition-colors shadow-float"
                 >
                   {account.displayName}
                 </button>

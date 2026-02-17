@@ -1,14 +1,18 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Dancing_Script } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/Providers";
 import Navbar from "@/components/Navbar";
 
 const inter = Inter({ subsets: ["latin"] });
+const dancingScript = Dancing_Script({
+  subsets: ["latin"],
+  variable: "--font-cursive",
+});
 
 export const metadata: Metadata = {
-  title: "MojoMan - Move to Earn. Fight to Win.",
-  description: "Exercise on camera, bet on outcomes, train your on-chain fighter.",
+  title: "MojoMan - Bet on your best self.",
+  description: "Stake on workouts, compete with friends, track streaks.",
 };
 
 export default function RootLayout({
@@ -18,10 +22,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${inter.className} ${dancingScript.variable}`}>
         <Providers>
-          <Navbar />
-          <main className="min-h-screen">{children}</main>
+          <div className="studio-backdrop">
+            <Navbar />
+            <main className="relative z-10 min-h-screen">{children}</main>
+          </div>
         </Providers>
       </body>
     </html>

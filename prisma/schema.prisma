@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Session {
+  id            Int     @id
+  exerciser     String
+  exerciseType  Int
+  targetReps    Int
+  actualReps    Int     @default(0)
+  startTime     Int
+  status        Int     @default(0) // 0=Active, 1=Resolved, 2=Expired
+  totalUpBets   String  @default("0") // BigInt wei as string
+  totalDownBets String  @default("0") // BigInt wei as string
+  targetMet     Boolean @default(false)
+
+  bets Bet[]
+}
+
+model Bet {
+  id        Int     @id @default(autoincrement())
+  sessionId Int
+  bettor    String
+  isUp      Boolean
+  amount    String // BigInt wei as string
+  claimed   Boolean @default(false)
+  payout    String  @default("0") // BigInt wei as string
+
+  session Session @relation(fields: [sessionId], references: [id])
+
+  @@unique([sessionId, bettor])
+  @@index([bettor])
+}
+
+model Fighter {
+  address   String  @id
+  strength  Int     @default(0)
+  agility   Int     @default(0)
+  endurance Int     @default(0)
+  totalReps Int     @default(0)
+  level     Int     @default(0)
+  wins      Int     @default(0)
+  losses    Int     @default(0)
+  username  String?
+
+  challengesAsChallenger Challenge[] @relation("ChallengerFighter")
+  challengesAsOpponent   Challenge[] @relation("OpponentFighter")
+}
+
+model Challenge {
+  id         Int    @id
+  challenger String
+  opponent   String
+  wager      String // BigInt wei as string
+  status     Int    @default(0) // 0=Pending, 1=Accepted, 2=Resolved, 3=Cancelled
+  winner     String @default("0x0000000000000000000000000000000000000000")
+  payout     String @default("0") // BigInt wei as string
+
+  challengerFighter Fighter @relation("ChallengerFighter", fields: [challenger], references: [address])
+  opponentFighter   Fighter @relation("OpponentFighter", fields: [opponent], references: [address])
+
+  @@index([opponent, status])
+}
+
+model IndexerState {
+  id        Int @id @default(1)
+  lastBlock Int @default(0)
+}

@@ -16,37 +16,37 @@ interface Props {
 
 export default function Leaderboard({ entries, title }: Props) {
   return (
-    <div className="bg-mojo-card border border-mojo-border rounded-xl p-6">
-      <h3 className="text-lg font-bold text-white mb-4">{title}</h3>
+    <div className="glass-card p-6">
+      <h3 className="text-lg font-semibold text-wii-ink mb-4">{title}</h3>
       <div className="space-y-2">
         {entries.length === 0 && (
-          <p className="text-gray-400 text-sm text-center py-4">No data yet</p>
+          <p className="text-wii-muted text-sm text-center py-4">No data yet</p>
         )}
         {entries.map((entry, i) => (
           <div
             key={entry.address}
             className={clsx(
-              "flex items-center justify-between p-3 rounded-lg",
-              i < 3 ? "bg-mojo-purple/10" : "bg-mojo-dark"
+              "flex items-center justify-between p-3 rounded-xl transition-colors",
+              i < 3 ? "bg-studio-blue/5" : "bg-wii-mist/50"
             )}
           >
             <div className="flex items-center gap-3">
               <span className={clsx(
                 "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold",
-                i === 0 ? "bg-yellow-500/20 text-yellow-500" :
-                i === 1 ? "bg-gray-400/20 text-gray-400" :
-                i === 2 ? "bg-orange-600/20 text-orange-600" :
-                "bg-mojo-dark text-gray-500"
+                i === 0 ? "bg-ring-orange/15 text-ring-orange" :
+                i === 1 ? "bg-wii-glass/50 text-wii-muted" :
+                i === 2 ? "bg-ring-pink/15 text-ring-pink" :
+                "bg-wii-mist text-wii-muted"
               )}>
                 {entry.rank}
               </span>
-              <span className="text-white text-sm">
+              <span className="text-wii-ink text-sm font-medium">
                 {entry.address.slice(0, 6)}...{entry.address.slice(-4)}
               </span>
             </div>
             <div className="text-right">
-              <div className="text-white font-medium text-sm">{entry.value}</div>
-              <div className="text-gray-400 text-xs">{entry.label}</div>
+              <div className="text-wii-ink font-semibold text-sm">{entry.value}</div>
+              <div className="text-wii-muted text-xs">{entry.label}</div>
             </div>
           </div>
         ))}

@@ -2,24 +2,95 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  background-color: #0F0F1A;
-  color: white;
+:root {
+  --wii-white: #F7FBFF;
+  --wii-mist: #EAF3FA;
+  --wii-glass: #CFE6F2;
+  --wii-ink: #11202B;
+  --studio-blue: #4C79D8;
 }
 
+body {
+  background-color: var(--wii-white);
+  color: var(--wii-ink);
+}
+
+/* Wii Fit Studio backdrop stripes */
+.studio-backdrop {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 18px,
+      rgba(76, 121, 216, 0.04) 18px,
+      rgba(76, 121, 216, 0.04) 20px
+    ),
+    linear-gradient(180deg, #E8F0FE 0%, #F7FBFF 60%, #EAF3FA 100%);
+  min-height: 100vh;
+}
+
+/* Soft vignette overlay for readability */
+.studio-backdrop::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(234, 243, 250, 0.6) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Glass card style */
+@layer components {
+  .glass-card {
+    @apply bg-white/75 backdrop-blur-sm border border-wii-glass rounded-glass shadow-glass;
+  }
+  .glass-card-hover {
+    @apply glass-card hover:shadow-glass-hover hover:-translate-y-0.5 transition-all duration-200;
+  }
+  .platform-pill {
+    @apply bg-white/90 border border-wii-glass rounded-full shadow-float px-4 py-2;
+  }
+}
+
+/* Ring selector styling */
+.ring-selector {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 3px solid var(--wii-glass);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.ring-selector:hover {
+  border-color: var(--studio-blue);
+  box-shadow: 0 0 16px rgba(45, 140, 255, 0.2);
+}
+
+.ring-selector.active {
+  border-width: 4px;
+  border-color: #2D8CFF;
+  background: rgba(45, 140, 255, 0.08);
+  box-shadow: 0 0 24px rgba(45, 140, 255, 0.3);
+}
+
+/* Scrollbar - subtle */
 ::-webkit-scrollbar {
   width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0F0F1A;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2A2A40;
+  background: #CFE6F2;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #7C3AED;
+  background: #4C79D8;
 }
