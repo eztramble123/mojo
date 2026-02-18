@@ -9,7 +9,14 @@ export type DataMessage =
   | { type: "betPlaced"; bettor: string; amount: string; isUp: boolean }
   | { type: "viewerJoined"; address: string };
 
-function getPeerConfig(): { host: string; port: number; path: string; secure: boolean } {
+const ICE_SERVERS = [
+  { urls: "stun:stun.l.google.com:19302" },
+  { urls: "stun:stun1.l.google.com:19302" },
+  { urls: "stun:stun2.l.google.com:19302" },
+];
+
+function getPeerConfig(): { host: string; port: number; path: string; secure: boolean; config: { iceServers: typeof ICE_SERVERS } } {
+  const iceConfig = { iceServers: ICE_SERVERS };
   const url = process.env.NEXT_PUBLIC_PEER_SERVER_URL;
   if (url) {
     try {
@@ -19,18 +26,19 @@ function getPeerConfig(): { host: string; port: number; path: string; secure: bo
         port: parsed.port ? Number(parsed.port) : parsed.protocol === "https:" ? 443 : 80,
         path: parsed.pathname === "/" ? "/myapp" : parsed.pathname,
         secure: parsed.protocol === "https:",
+        config: iceConfig,
       };
     } catch {
       // fall through to default
     }
   }
-  // Default: localhost in dev, must set env var in production
   const isLocal = typeof window !== "undefined" && window.location.hostname === "localhost";
   return {
     host: isLocal ? "localhost" : "0.peerjs.com",
     port: isLocal ? 9000 : 443,
     path: isLocal ? "/myapp" : "/",
     secure: !isLocal,
+    config: iceConfig,
   };
 }
 
@@ -152,23 +160,36 @@ export function useViewer(sessionId: string | null) {
     addActivity("reaction", `You reacted ${emoji}`);
   }, [addActivity]);
 
-  const connect = useCallback(async () => {
+  const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const retriesRef = useRef(0);
+
+  const connectToPeer = useCallback(async () => {
     if (!sessionId) return;
+    const peerId = `mojo-session-${sessionId}`;
 
     const { default: Peer } = await import("peerjs");
     const peer = new Peer(getPeerConfig());
     peerRef.current = peer;
 
     peer.on("open", () => {
+      console.log("Viewer peer open, connecting to", peerId);
+
       // Request video stream
-      const call = peer.call(`mojo-session-${sessionId}`, new MediaStream());
+      const call = peer.call(peerId, new MediaStream());
+
       call.on("stream", (stream: MediaStream) => {
+        console.log("Got remote stream");
         setRemoteStream(stream);
         setIsConnected(true);
+        retriesRef.current = 0;
+      });
+
+      call.on("error", (err: Error) => {
+        console.warn("Call error:", err.message);
       });
 
       // Data channel for rep updates + activity
-      const conn = peer.connect(`mojo-session-${sessionId}`);
+      const conn = peer.connect(peerId);
       dataConnRef.current = conn;
 
       conn.on("data", (data: any) => {
@@ -189,10 +210,39 @@ export function useViewer(sessionId: string | null) {
             break;
         }
       });
+
+      conn.on("error", () => {
+        // Broadcaster may not be ready yet — retry
+        if (retriesRef.current < 10) {
+          retriesRef.current++;
+          console.log(`Retrying connection (${retriesRef.current}/10)...`);
+          peer.destroy();
+          retryRef.current = setTimeout(() => connectToPeer(), 2000);
+        }
+      });
+    });
+
+    peer.on("error", (err: Error) => {
+      console.warn("Peer error:", err.message);
+      if (err.message.includes("not found") || err.message.includes("Could not connect")) {
+        // Broadcaster not on server yet — retry
+        if (retriesRef.current < 10) {
+          retriesRef.current++;
+          console.log(`Broadcaster not ready, retrying (${retriesRef.current}/10)...`);
+          peer.destroy();
+          retryRef.current = setTimeout(() => connectToPeer(), 2000);
+        }
+      }
     });
   }, [sessionId, addActivity]);
 
+  const connect = useCallback(async () => {
+    retriesRef.current = 0;
+    await connectToPeer();
+  }, [connectToPeer]);
+
   const disconnect = useCallback(() => {
+    if (retryRef.current) clearTimeout(retryRef.current);
     peerRef.current?.destroy();
     peerRef.current = null;
     dataConnRef.current = null;

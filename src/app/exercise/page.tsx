@@ -274,8 +274,8 @@ export default function ExercisePage() {
             isActive={true}
           />
           <RepCounter reps={reps} target={targetReps} phase={phase} />
-          {(sessionId !== null || createHash) && (
-            <ShareSession sessionId={sessionId !== null ? sessionId.toString() : createHash!} />
+          {sessionId !== null && (
+            <ShareSession sessionId={sessionId.toString()} />
           )}
         </div>
       )}
