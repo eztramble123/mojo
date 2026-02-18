@@ -53,6 +53,7 @@ const config: Config = {
         "pulse-ring": "pulse-ring 2s ease-in-out infinite",
         "slide-up": "slide-up 0.3s ease-out",
         "float": "float 3s ease-in-out infinite",
+        "float-up": "float-up 2.5s ease-out forwards",
       },
       keyframes: {
         "pulse-ring": {
@@ -66,6 +67,10 @@ const config: Config = {
         "float": {
           "0%, 100%": { transform: "translateY(0px)" },
           "50%": { transform: "translateY(-6px)" },
+        },
+        "float-up": {
+          "0%": { transform: "translateY(0)", opacity: "1" },
+          "100%": { transform: "translateY(-300px)", opacity: "0" },
         },
       },
     },

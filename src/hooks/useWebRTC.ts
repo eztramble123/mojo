@@ -42,12 +42,20 @@ function getPeerConfig(): { host: string; port: number; path: string; secure: bo
   };
 }
 
+export interface Reaction {
+  id: string;
+  emoji: string;
+  timestamp: number;
+}
+
 export function useBroadcaster(sessionId: string | null) {
   const [isStreaming, setIsStreaming] = useState(false);
   const [viewerCount, setViewerCount] = useState(0);
+  const [reactions, setReactions] = useState<Reaction[]>([]);
   const peerRef = useRef<any>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const dataConnsRef = useRef<any[]>([]);
+  const reactionIdRef = useRef(0);
 
   const sendActivity = useCallback((msg: DataMessage) => {
     for (const conn of dataConnsRef.current) {
@@ -82,6 +90,7 @@ export function useBroadcaster(sessionId: string | null) {
         dataConnsRef.current.push(conn);
 
         conn.on("open", () => {
+          setViewerCount((c) => c + 1);
           // Relay viewerJoined to all existing connections
           const joinMsg: DataMessage = { type: "viewerJoined", address: "anonymous" };
           for (const c of dataConnsRef.current) {
@@ -93,8 +102,23 @@ export function useBroadcaster(sessionId: string | null) {
           }
         });
 
+        // Listen for reactions from viewers
+        conn.on("data", (data: any) => {
+          if (data?.type === "reaction") {
+            const id = `r-${++reactionIdRef.current}`;
+            setReactions((prev) => [...prev.slice(-20), { id, emoji: data.emoji, timestamp: Date.now() }]);
+            // Relay to other viewers
+            for (const c of dataConnsRef.current) {
+              if (c !== conn) {
+                try { c.send(data); } catch { /* ignore */ }
+              }
+            }
+          }
+        });
+
         conn.on("close", () => {
           dataConnsRef.current = dataConnsRef.current.filter((c) => c !== conn);
+          setViewerCount((c) => Math.max(0, c - 1));
         });
       });
     },
@@ -125,7 +149,7 @@ export function useBroadcaster(sessionId: string | null) {
     };
   }, [stopBroadcasting]);
 
-  return { isStreaming, viewerCount, startBroadcasting, sendRepUpdate, sendActivity, stopBroadcasting };
+  return { isStreaming, viewerCount, reactions, startBroadcasting, sendRepUpdate, sendActivity, stopBroadcasting };
 }
 
 let eventIdCounter = 0;

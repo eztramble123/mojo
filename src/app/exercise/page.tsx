@@ -11,6 +11,7 @@ import { useExerciseCounter } from "@/hooks/useExerciseCounter";
 import { useCreateSession, useResolveSession } from "@/hooks/useSession";
 import { useSyncStats, useMyFighter, useCreateFighter } from "@/hooks/useFighter";
 import { useBroadcaster } from "@/hooks/useWebRTC";
+import ReactionOverlay from "@/components/ReactionOverlay";
 import { ExerciseType, EXERCISE_LABELS, Keypoint } from "@/types";
 
 type Stage = "pick" | "walkthrough" | "exercising" | "done";
@@ -78,7 +79,7 @@ export default function ExercisePage() {
   const { syncStats } = useSyncStats();
   const { fighter } = useMyFighter();
   const { createFighter } = useCreateFighter();
-  const { isStreaming, viewerCount, startBroadcasting, sendRepUpdate, stopBroadcasting } = useBroadcaster(
+  const { isStreaming, viewerCount, reactions, startBroadcasting, sendRepUpdate, stopBroadcasting } = useBroadcaster(
     sessionId !== null ? sessionId.toString() : null
   );
 
@@ -267,12 +268,15 @@ export default function ExercisePage() {
               {isResolving ? "Resolving..." : !sessionCreated ? "Warming up..." : "Stop & Submit"}
             </button>
           </div>
-          <ExerciseCamera
-            exerciseType={exerciseType}
-            onKeypoints={processKeypoints}
-            onStreamReady={handleStreamReady}
-            isActive={true}
-          />
+          <div className="relative">
+            <ExerciseCamera
+              exerciseType={exerciseType}
+              onKeypoints={processKeypoints}
+              onStreamReady={handleStreamReady}
+              isActive={true}
+            />
+            <ReactionOverlay reactions={reactions} />
+          </div>
           <RepCounter reps={reps} target={targetReps} phase={phase} />
           {sessionId !== null && (
             <ShareSession sessionId={sessionId.toString()} />
