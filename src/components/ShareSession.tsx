@@ -1,17 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { QRCodeSVG } from "qrcode.react";
 
 interface Props {
   sessionId: string;
+  /** Optional override base URL (e.g. Vercel production URL) */
+  baseUrl?: string;
 }
 
-export default function ShareSession({ sessionId }: Props) {
+export default function ShareSession({ sessionId, baseUrl }: Props) {
   const [copied, setCopied] = useState(false);
-  const watchUrl = typeof window !== "undefined"
-    ? `${window.location.origin}/watch/${sessionId}`
-    : `/watch/${sessionId}`;
+  const [origin, setOrigin] = useState("");
+
+  useEffect(() => {
+    if (baseUrl) {
+      setOrigin(baseUrl);
+    } else if (typeof window !== "undefined") {
+      // On localhost, use the LAN IP so others on the same network can scan
+      const host = window.location.hostname;
+      if (host === "localhost" || host === "127.0.0.1") {
+        setOrigin(`http://${window.location.host}`);
+      } else {
+        setOrigin(window.location.origin);
+      }
+    }
+  }, [baseUrl]);
+
+  const watchUrl = `${origin}/watch/${sessionId}`;
 
   const handleCopy = async () => {
     try {
