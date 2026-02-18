@@ -73,7 +73,7 @@ export default function ExercisePage() {
   const [sessionId, setSessionId] = useState<bigint | null>(null);
 
   const { reps, phase, processKeypoints, reset } = useExerciseCounter(exerciseType);
-  const { createSession, isPending: isCreating, isConfirming, isSuccess: sessionCreated, hash: createHash, sessionId: createdSessionId } = useCreateSession();
+  const { createSession, isPending: isCreating, isConfirming, isSuccess: sessionCreated, hash: createHash, sessionId: createdSessionId, writeError, resetWrite } = useCreateSession();
   const { resolveSession, isPending: isResolving, isSuccess: sessionResolved } = useResolveSession();
   const { syncStats } = useSyncStats();
   const { fighter } = useMyFighter();
@@ -104,13 +104,14 @@ export default function ExercisePage() {
 
   // When user clicks continue in walkthrough, create the actual session
   const handleWalkthroughContinue = useCallback(() => {
+    resetWrite(); // Clear any previous error before retrying
     if (!isConnected) {
       setSessionId(BigInt(Date.now()));
       setStage("exercising");
       return;
     }
     createSession(exerciseType, BigInt(targetReps));
-  }, [isConnected, createSession, exerciseType, targetReps]);
+  }, [isConnected, createSession, exerciseType, targetReps, resetWrite]);
 
   // Optimistic: go to exercising as soon as wallet signs (hash exists)
   useEffect(() => {
@@ -215,6 +216,7 @@ export default function ExercisePage() {
           targetReps={targetReps}
           onContinue={handleWalkthroughContinue}
           isLoading={isCreating}
+          error={writeError ? "Transaction rejected or failed" : null}
         />
       )}
 

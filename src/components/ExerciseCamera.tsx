@@ -91,8 +91,10 @@ export default function ExerciseCamera({ exerciseType, onKeypoints, onStreamRead
         </div>
       )}
       {error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-wii-ink/70">
-          <p className="text-mojo-red text-sm">Error: {error}</p>
+        <div className="absolute top-0 left-0 right-0 bg-ring-orange/90 px-3 py-1.5 text-center">
+          <p className="text-white text-xs font-medium">
+            Pose detection unavailable — count your reps manually
+          </p>
         </div>
       )}
     </div>

@@ -14,11 +14,21 @@ export function usePoseDetection() {
   const loadModel = useCallback(async () => {
     try {
       setIsLoading(true);
-      // Dynamic imports to avoid SSR issues
+      setError(null);
+
       const tf = await import("@tensorflow/tfjs-core");
-      await import("@tensorflow/tfjs-backend-webgl");
-      await tf.setBackend("webgl");
-      await tf.ready();
+
+      // Try WebGL first, fall back to CPU
+      try {
+        await import("@tensorflow/tfjs-backend-webgl");
+        await tf.setBackend("webgl");
+        await tf.ready();
+      } catch {
+        console.warn("WebGL backend failed, falling back to CPU");
+        await import("@tensorflow/tfjs-backend-cpu");
+        await tf.setBackend("cpu");
+        await tf.ready();
+      }
 
       const poseDetection = await import("@tensorflow-models/pose-detection");
       const detector = await poseDetection.createDetector(
@@ -30,8 +40,30 @@ export function usePoseDetection() {
       detectorRef.current = detector;
       setIsLoading(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load model");
-      setIsLoading(false);
+      console.warn("Model load failed, retrying once...", err);
+      // Retry once after 1s
+      try {
+        await new Promise((r) => setTimeout(r, 1000));
+        const tf = await import("@tensorflow/tfjs-core");
+        await import("@tensorflow/tfjs-backend-cpu");
+        await tf.setBackend("cpu");
+        await tf.ready();
+
+        const poseDetection = await import("@tensorflow-models/pose-detection");
+        const detector = await poseDetection.createDetector(
+          poseDetection.SupportedModels.MoveNet,
+          {
+            modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
+          }
+        );
+        detectorRef.current = detector;
+        setIsLoading(false);
+      } catch (retryErr) {
+        setError(
+          retryErr instanceof Error ? retryErr.message : "Failed to load model"
+        );
+        setIsLoading(false);
+      }
     }
   }, []);
 

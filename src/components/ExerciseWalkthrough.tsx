@@ -8,6 +8,7 @@ interface Props {
   targetReps: number;
   onContinue: () => void;
   isLoading?: boolean;
+  error?: string | null;
 }
 
 const EXERCISE_EMOJI: Record<ExerciseType, string> = {
@@ -124,7 +125,7 @@ const EXERCISE_ANIMATIONS: Record<ExerciseType, () => React.ReactNode> = {
   [ExerciseType.JumpingJacks]: JumpingJackAnimation,
 };
 
-export default function ExerciseWalkthrough({ exerciseType, targetReps, onContinue, isLoading }: Props) {
+export default function ExerciseWalkthrough({ exerciseType, targetReps, onContinue, isLoading, error }: Props) {
   const [currentStep, setCurrentStep] = useState(0);
   const [animatedCount, setAnimatedCount] = useState(0);
   const [showContinue, setShowContinue] = useState(false);
@@ -237,10 +238,16 @@ export default function ExerciseWalkthrough({ exerciseType, targetReps, onContin
             {isLoading && (
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
             )}
-            {isLoading ? "Confirm in your wallet..." : "UNLEASH THE MOJO"}
+            {isLoading ? "Confirm in your wallet..." : error ? "RETRY — UNLEASH THE MOJO" : "UNLEASH THE MOJO"}
           </span>
         </button>
       </div>
+
+      {error && (
+        <p className="text-mojo-red text-sm text-center">
+          Transaction failed — tap above to try again
+        </p>
+      )}
     </div>
   );
 }

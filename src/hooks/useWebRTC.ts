@@ -9,6 +9,22 @@ export type DataMessage =
   | { type: "betPlaced"; bettor: string; amount: string; isUp: boolean }
   | { type: "viewerJoined"; address: string };
 
+function getPeerConfig(): { host: string; port: number; path: string; secure: boolean } | undefined {
+  const url = process.env.NEXT_PUBLIC_PEER_SERVER_URL;
+  if (!url) return undefined;
+  try {
+    const parsed = new URL(url);
+    return {
+      host: parsed.hostname,
+      port: parsed.port ? Number(parsed.port) : parsed.protocol === "https:" ? 443 : 80,
+      path: parsed.pathname === "/" ? "/myapp" : parsed.pathname,
+      secure: parsed.protocol === "https:",
+    };
+  } catch {
+    return undefined;
+  }
+}
+
 export function useBroadcaster(sessionId: string | null) {
   const [isStreaming, setIsStreaming] = useState(false);
   const [viewerCount, setViewerCount] = useState(0);
@@ -32,7 +48,8 @@ export function useBroadcaster(sessionId: string | null) {
       streamRef.current = stream;
 
       const { default: Peer } = await import("peerjs");
-      const peer = new Peer(`mojo-session-${sessionId}`);
+      const peerOpts = getPeerConfig();
+      const peer = new Peer(`mojo-session-${sessionId}`, peerOpts ?? {});
       peerRef.current = peer;
 
       peer.on("open", () => {
@@ -131,7 +148,8 @@ export function useViewer(sessionId: string | null) {
     if (!sessionId) return;
 
     const { default: Peer } = await import("peerjs");
-    const peer = new Peer();
+    const peerOpts = getPeerConfig();
+    const peer = new Peer(peerOpts ?? {});
     peerRef.current = peer;
 
     peer.on("open", () => {

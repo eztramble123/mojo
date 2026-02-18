@@ -26,7 +26,7 @@ export function useSession(sessionId?: bigint) {
 }
 
 export function useCreateSession() {
-  const { writeContract, data: hash, isPending } = useWriteContract();
+  const { writeContract, data: hash, isPending, error: writeError, reset: resetWrite } = useWriteContract();
   const { isLoading: isConfirming, isSuccess, data: receipt } = useWaitForTransactionReceipt({ hash });
 
   // Extract sessionId from SessionCreated event in transaction receipt
@@ -57,7 +57,7 @@ export function useCreateSession() {
     });
   };
 
-  return { createSession, isPending, isConfirming, isSuccess, hash, sessionId };
+  return { createSession, isPending, isConfirming, isSuccess, hash, sessionId, writeError, resetWrite };
 }
 
 export function useResolveSession() {
