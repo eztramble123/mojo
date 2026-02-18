@@ -23,7 +23,7 @@ export default function ExercisePage() {
   const [sessionId, setSessionId] = useState<bigint | null>(null);
 
   const { reps, phase, processKeypoints, reset } = useExerciseCounter(exerciseType);
-  const { createSession, isPending: isCreating, isSuccess: sessionCreated, hash: createHash } = useCreateSession();
+  const { createSession, isPending: isCreating, isSuccess: sessionCreated, hash: createHash, sessionId: createdSessionId } = useCreateSession();
   const { resolveSession, isPending: isResolving, isSuccess: sessionResolved } = useResolveSession();
   const { syncStats } = useSyncStats();
   const { fighter } = useMyFighter();
@@ -63,11 +63,11 @@ export default function ExercisePage() {
   }, [isConnected, createSession, exerciseType, targetReps]);
 
   useEffect(() => {
-    if (sessionCreated && stage === "walkthrough") {
-      setSessionId(BigInt(0));
+    if (sessionCreated && stage === "walkthrough" && createdSessionId !== undefined) {
+      setSessionId(createdSessionId);
       setStage("exercising");
     }
-  }, [sessionCreated, stage]);
+  }, [sessionCreated, stage, createdSessionId]);
 
   const handleStreamReady = useCallback(
     (stream: MediaStream) => {

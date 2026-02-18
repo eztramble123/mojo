@@ -25,7 +25,7 @@ interface LeaderboardEntry {
 
 async function getLeaderboard(): Promise<LeaderboardEntry[]> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
     const res = await fetch(`${baseUrl}/api/leaderboard?sort=totalReps&limit=5`, {
       cache: "no-store",
     });
@@ -38,7 +38,7 @@ async function getLeaderboard(): Promise<LeaderboardEntry[]> {
 
 async function getActiveSessions(): Promise<ApiSession[]> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
     const res = await fetch(`${baseUrl}/api/sessions?status=0&limit=12`, {
       cache: "no-store",
     });
