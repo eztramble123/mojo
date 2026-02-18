@@ -3,15 +3,17 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useAccount } from "wagmi";
 import ExercisePicker from "@/components/ExercisePicker";
+import ExerciseWalkthrough from "@/components/ExerciseWalkthrough";
 import ExerciseCamera from "@/components/ExerciseCamera";
 import RepCounter from "@/components/RepCounter";
+import ShareSession from "@/components/ShareSession";
 import { useExerciseCounter } from "@/hooks/useExerciseCounter";
 import { useCreateSession, useResolveSession } from "@/hooks/useSession";
 import { useSyncStats, useMyFighter, useCreateFighter } from "@/hooks/useFighter";
 import { useBroadcaster } from "@/hooks/useWebRTC";
 import { ExerciseType, EXERCISE_LABELS, Keypoint } from "@/types";
 
-type Stage = "pick" | "exercising" | "done";
+type Stage = "pick" | "walkthrough" | "exercising" | "done";
 
 export default function ExercisePage() {
   const { address, isConnected } = useAccount();
@@ -39,25 +41,29 @@ export default function ExercisePage() {
     }
   }, [reps, sendRepUpdate]);
 
+  // When user clicks "Start Session" in picker, go to walkthrough
   const handleStart = useCallback(
     (type: ExerciseType, target: number) => {
       setExerciseType(type);
       setTargetReps(target);
       reset();
-
-      if (!isConnected) {
-        setSessionId(BigInt(Date.now()));
-        setStage("exercising");
-        return;
-      }
-
-      createSession(type, BigInt(target));
+      setStage("walkthrough");
     },
-    [isConnected, createSession, reset]
+    [reset]
   );
 
+  // When user clicks continue in walkthrough, create the actual session
+  const handleWalkthroughContinue = useCallback(() => {
+    if (!isConnected) {
+      setSessionId(BigInt(Date.now()));
+      setStage("exercising");
+      return;
+    }
+    createSession(exerciseType, BigInt(targetReps));
+  }, [isConnected, createSession, exerciseType, targetReps]);
+
   useEffect(() => {
-    if (sessionCreated && stage === "pick") {
+    if (sessionCreated && stage === "walkthrough") {
       setSessionId(BigInt(0));
       setStage("exercising");
     }
@@ -99,6 +105,13 @@ export default function ExercisePage() {
 
         <div className="mt-8">
           {stage === "pick" && <ExercisePicker onStart={handleStart} />}
+          {stage === "walkthrough" && (
+            <ExerciseWalkthrough
+              exerciseType={exerciseType}
+              targetReps={targetReps}
+              onContinue={handleWalkthroughContinue}
+            />
+          )}
           {stage === "exercising" && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -139,6 +152,15 @@ export default function ExercisePage() {
         <ExercisePicker onStart={handleStart} disabled={isCreating} />
       )}
 
+      {stage === "walkthrough" && (
+        <ExerciseWalkthrough
+          exerciseType={exerciseType}
+          targetReps={targetReps}
+          onContinue={handleWalkthroughContinue}
+          isLoading={isCreating}
+        />
+      )}
+
       {stage === "exercising" && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -163,6 +185,9 @@ export default function ExercisePage() {
             isActive={true}
           />
           <RepCounter reps={reps} target={targetReps} phase={phase} />
+          {isStreaming && sessionId !== null && (
+            <ShareSession sessionId={sessionId.toString()} />
+          )}
         </div>
       )}
 

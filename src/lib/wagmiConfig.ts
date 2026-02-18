@@ -13,7 +13,7 @@ export const monadTestnet = defineChain({
   },
   rpcUrls: {
     default: {
-      http: [process.env.NEXT_PUBLIC_MONAD_RPC_URL || "https://testnet.monad.xyz/v1"],
+      http: [process.env.NEXT_PUBLIC_MONAD_RPC_URL || "https://testnet-rpc.monad.xyz"],
     },
   },
   blockExplorers: {

@@ -13,7 +13,7 @@ const config: HardhatUserConfig = {
   },
   networks: {
     monadTestnet: {
-      url: process.env.NEXT_PUBLIC_MONAD_RPC_URL || "https://testnet.monad.xyz/v1",
+      url: process.env.NEXT_PUBLIC_MONAD_RPC_URL || "https://testnet-rpc.monad.xyz",
       accounts: process.env.DEPLOYER_PRIVATE_KEY
         ? [process.env.DEPLOYER_PRIVATE_KEY]
         : [],

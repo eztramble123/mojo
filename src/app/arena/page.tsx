@@ -12,6 +12,7 @@ import {
 } from "@/hooks/useFighter";
 import FighterCard from "@/components/FighterCard";
 import BattleArena from "@/components/BattleArena";
+import AgentPanel from "@/components/AgentPanel";
 import Link from "next/link";
 
 interface PendingChallenge {
@@ -216,6 +217,10 @@ export default function ArenaPage() {
           />
         </div>
       )}
+
+      <div className="mt-12">
+        <AgentPanel address={address} fighter={myFighter} />
+      </div>
     </div>
   );
 }

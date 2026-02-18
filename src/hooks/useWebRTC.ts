@@ -1,6 +1,13 @@
 "use client";
 
 import { useRef, useState, useCallback, useEffect } from "react";
+import type { ActivityEvent } from "@/components/ActivityFeed";
+
+export type DataMessage =
+  | { type: "repUpdate"; reps: number }
+  | { type: "reaction"; emoji: string; from: string }
+  | { type: "betPlaced"; bettor: string; amount: string; isUp: boolean }
+  | { type: "viewerJoined"; address: string };
 
 export function useBroadcaster(sessionId: string | null) {
   const [isStreaming, setIsStreaming] = useState(false);
@@ -8,6 +15,16 @@ export function useBroadcaster(sessionId: string | null) {
   const peerRef = useRef<any>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const dataConnsRef = useRef<any[]>([]);
+
+  const sendActivity = useCallback((msg: DataMessage) => {
+    for (const conn of dataConnsRef.current) {
+      try {
+        conn.send(msg);
+      } catch {
+        // Connection may have closed
+      }
+    }
+  }, []);
 
   const startBroadcasting = useCallback(
     async (stream: MediaStream) => {
@@ -30,6 +47,19 @@ export function useBroadcaster(sessionId: string | null) {
 
       peer.on("connection", (conn: any) => {
         dataConnsRef.current.push(conn);
+
+        conn.on("open", () => {
+          // Relay viewerJoined to all existing connections
+          const joinMsg: DataMessage = { type: "viewerJoined", address: "anonymous" };
+          for (const c of dataConnsRef.current) {
+            try {
+              c.send(joinMsg);
+            } catch {
+              // ignore
+            }
+          }
+        });
+
         conn.on("close", () => {
           dataConnsRef.current = dataConnsRef.current.filter((c) => c !== conn);
         });
@@ -62,14 +92,40 @@ export function useBroadcaster(sessionId: string | null) {
     };
   }, [stopBroadcasting]);
 
-  return { isStreaming, viewerCount, startBroadcasting, sendRepUpdate, stopBroadcasting };
+  return { isStreaming, viewerCount, startBroadcasting, sendRepUpdate, sendActivity, stopBroadcasting };
+}
+
+let eventIdCounter = 0;
+function makeEventId() {
+  return `evt-${Date.now()}-${++eventIdCounter}`;
 }
 
 export function useViewer(sessionId: string | null) {
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [liveReps, setLiveReps] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
+  const [activityFeed, setActivityFeed] = useState<ActivityEvent[]>([]);
   const peerRef = useRef<any>(null);
+  const dataConnRef = useRef<any>(null);
+
+  const addActivity = useCallback((type: ActivityEvent["type"], message: string) => {
+    setActivityFeed((prev) => {
+      const next = [...prev, { id: makeEventId(), type, message, timestamp: Date.now() }];
+      return next.slice(-50);
+    });
+  }, []);
+
+  const sendReaction = useCallback((emoji: string) => {
+    if (dataConnRef.current) {
+      try {
+        const msg: DataMessage = { type: "reaction", emoji, from: "you" };
+        dataConnRef.current.send(msg);
+      } catch {
+        // ignore
+      }
+    }
+    addActivity("reaction", `You reacted ${emoji}`);
+  }, [addActivity]);
 
   const connect = useCallback(async () => {
     if (!sessionId) return;
@@ -86,22 +142,39 @@ export function useViewer(sessionId: string | null) {
         setIsConnected(true);
       });
 
-      // Data channel for rep updates
+      // Data channel for rep updates + activity
       const conn = peer.connect(`mojo-session-${sessionId}`);
+      dataConnRef.current = conn;
+
       conn.on("data", (data: any) => {
-        if (data && data.type === "repUpdate") {
-          setLiveReps(data.reps);
+        if (!data || !data.type) return;
+
+        switch (data.type) {
+          case "repUpdate":
+            setLiveReps(data.reps);
+            break;
+          case "reaction":
+            addActivity("reaction", `${data.from} reacted ${data.emoji}`);
+            break;
+          case "betPlaced":
+            addActivity("betPlaced", `${data.bettor.slice(0, 6)}... bet ${data.amount} MON ${data.isUp ? "UP" : "DOWN"}`);
+            break;
+          case "viewerJoined":
+            addActivity("viewerJoined", "A new viewer joined!");
+            break;
         }
       });
     });
-  }, [sessionId]);
+  }, [sessionId, addActivity]);
 
   const disconnect = useCallback(() => {
     peerRef.current?.destroy();
     peerRef.current = null;
+    dataConnRef.current = null;
     setRemoteStream(null);
     setIsConnected(false);
     setLiveReps(0);
+    setActivityFeed([]);
   }, []);
 
   useEffect(() => {
@@ -110,5 +183,5 @@ export function useViewer(sessionId: string | null) {
     };
   }, [disconnect]);
 
-  return { remoteStream, liveReps, isConnected, connect, disconnect };
+  return { remoteStream, liveReps, isConnected, activityFeed, connect, disconnect, sendReaction, addActivity };
 }

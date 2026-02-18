@@ -10,9 +10,10 @@ import { clsx } from "clsx";
 interface Props {
   sessionId: bigint;
   session: Session;
+  onBetPlaced?: (amount: string, isUp: boolean) => void;
 }
 
-export default function BettingPanel({ sessionId, session }: Props) {
+export default function BettingPanel({ sessionId, session, onBetPlaced }: Props) {
   const { address } = useAccount();
   const [betAmount, setBetAmount] = useState("0.01");
   const { placeBet, isPending: isBetting } = usePlaceBet();
@@ -23,6 +24,11 @@ export default function BettingPanel({ sessionId, session }: Props) {
   const totalPool = session.totalUpBets + session.totalDownBets;
   const isResolved = session.status === SessionStatus.Resolved;
   const targetMet = session.actualReps >= session.targetReps;
+
+  const handleBet = (isUp: boolean) => {
+    placeBet(sessionId, isUp, betAmount);
+    onBetPlaced?.(betAmount, isUp);
+  };
 
   return (
     <div className="glass-card p-5 space-y-4">
@@ -58,14 +64,14 @@ export default function BettingPanel({ sessionId, session }: Props) {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <button
-              onClick={() => placeBet(sessionId, true, betAmount)}
+              onClick={() => handleBet(true)}
               disabled={isBetting}
               className="py-2.5 bg-mojo-green hover:bg-mojo-green/90 text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
             >
               {isBetting ? "..." : "Bet They Make It"}
             </button>
             <button
-              onClick={() => placeBet(sessionId, false, betAmount)}
+              onClick={() => handleBet(false)}
               disabled={isBetting}
               className="py-2.5 bg-mojo-red hover:bg-mojo-red/90 text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
             >

@@ -1,11 +1,12 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useSession } from "@/hooks/useSession";
 import { useViewer } from "@/hooks/useWebRTC";
 import ViewerStream from "@/components/ViewerStream";
 import BettingPanel from "@/components/BettingPanel";
+import ActivityFeed from "@/components/ActivityFeed";
 import { EXERCISE_LABELS, SessionStatus } from "@/types";
 
 export default function WatchPage() {
@@ -14,7 +15,10 @@ export default function WatchPage() {
   const sessionBigInt = BigInt(sessionId);
 
   const { session, refetch } = useSession(sessionBigInt);
-  const { remoteStream, liveReps, isConnected, connect, disconnect } = useViewer(sessionId);
+  const { remoteStream, liveReps, isConnected, activityFeed, connect, disconnect, sendReaction, addActivity } = useViewer(sessionId);
+
+  // Track milestones
+  const milestonesHit = useRef(new Set<number>());
 
   useEffect(() => {
     connect();
@@ -25,6 +29,25 @@ export default function WatchPage() {
     const interval = setInterval(refetch, 5000);
     return () => clearInterval(interval);
   }, [refetch]);
+
+  // Generate milestone events
+  useEffect(() => {
+    if (!session) return;
+    const target = Number(session.targetReps);
+    if (target <= 0) return;
+
+    for (const pct of [25, 50, 75, 100]) {
+      const threshold = Math.ceil((pct / 100) * target);
+      if (liveReps >= threshold && !milestonesHit.current.has(pct)) {
+        milestonesHit.current.add(pct);
+        addActivity("milestone", `${pct}% complete! (${liveReps}/${target} reps)`);
+      }
+    }
+  }, [liveReps, session, addActivity]);
+
+  const handleBetPlaced = (amount: string, isUp: boolean) => {
+    addActivity("betPlaced", `You bet ${amount} MON ${isUp ? "UP" : "DOWN"}`);
+  };
 
   if (!session) {
     return (
@@ -77,6 +100,9 @@ export default function WatchPage() {
             </div>
           </div>
 
+          {/* Activity Feed */}
+          <ActivityFeed events={activityFeed} onReaction={sendReaction} />
+
           {session.status === SessionStatus.Resolved && (
             <div className="glass-card p-6 text-center">
               <div className={`text-2xl font-semibold mb-2 ${
@@ -92,7 +118,7 @@ export default function WatchPage() {
         </div>
 
         <div>
-          <BettingPanel sessionId={sessionBigInt} session={session} />
+          <BettingPanel sessionId={sessionBigInt} session={session} onBetPlaced={handleBetPlaced} />
         </div>
       </div>
     </div>
