@@ -7,6 +7,7 @@ import ExerciseWalkthrough from "@/components/ExerciseWalkthrough";
 import ExerciseCamera from "@/components/ExerciseCamera";
 import RepCounter from "@/components/RepCounter";
 import ShareSession from "@/components/ShareSession";
+import PizzaOrder from "@/components/PizzaOrder";
 import { useExerciseCounter } from "@/hooks/useExerciseCounter";
 import { useCreateSession, useResolveSession } from "@/hooks/useSession";
 import { useSyncStats, useMyFighter, useCreateFighter } from "@/hooks/useFighter";
@@ -224,42 +225,46 @@ function ResultsScreen({
   const mojoEarned = reps * 10;
 
   return (
-    <div className="glass-card p-8 text-center space-y-6">
-      <div className={`text-4xl font-semibold ${targetMet ? "text-mojo-green" : "text-ring-orange"}`}>
-        {targetMet ? "Target Met!" : "Session Complete"}
-      </div>
+    <div className="space-y-4">
+      <div className="glass-card p-8 text-center space-y-6">
+        <div className={`text-4xl font-semibold ${targetMet ? "text-mojo-green" : "text-ring-orange"}`}>
+          {targetMet ? "Target Met!" : "Session Complete"}
+        </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-wii-mist rounded-xl p-4">
-          <div className="text-2xl font-bold text-wii-ink">{reps}</div>
-          <div className="text-sm text-wii-muted">Reps Done</div>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="bg-wii-mist rounded-xl p-4">
+            <div className="text-2xl font-bold text-wii-ink">{reps}</div>
+            <div className="text-sm text-wii-muted">Reps Done</div>
+          </div>
+          <div className="bg-wii-mist rounded-xl p-4">
+            <div className="text-2xl font-bold text-wii-ink">{targetReps}</div>
+            <div className="text-sm text-wii-muted">Target</div>
+          </div>
+          <div className="bg-wii-mist rounded-xl p-4">
+            <div className="text-2xl font-bold text-studio-blue">{mojoEarned}</div>
+            <div className="text-sm text-wii-muted">MOJO Earned</div>
+          </div>
         </div>
-        <div className="bg-wii-mist rounded-xl p-4">
-          <div className="text-2xl font-bold text-wii-ink">{targetReps}</div>
-          <div className="text-sm text-wii-muted">Target</div>
-        </div>
-        <div className="bg-wii-mist rounded-xl p-4">
-          <div className="text-2xl font-bold text-studio-blue">{mojoEarned}</div>
-          <div className="text-sm text-wii-muted">MOJO Earned</div>
-        </div>
-      </div>
 
-      <div className="flex items-center justify-center gap-4">
-        <button
-          onClick={onRestart}
-          className="px-6 py-2.5 bg-studio-blue hover:bg-studio-blue/90 rounded-full font-medium text-white transition-colors"
-        >
-          New Session
-        </button>
-        {showSync && onSyncFighter && (
+        <div className="flex items-center justify-center gap-4">
           <button
-            onClick={onSyncFighter}
-            className="px-6 py-2.5 bg-ring-blue hover:bg-ring-blue/90 rounded-full font-medium text-white transition-colors"
+            onClick={onRestart}
+            className="px-6 py-2.5 bg-studio-blue hover:bg-studio-blue/90 rounded-full font-medium text-white transition-colors"
           >
-            Sync to Fighter
+            New Session
           </button>
-        )}
+          {showSync && onSyncFighter && (
+            <button
+              onClick={onSyncFighter}
+              className="px-6 py-2.5 bg-ring-blue hover:bg-ring-blue/90 rounded-full font-medium text-white transition-colors"
+            >
+              Sync to Fighter
+            </button>
+          )}
+        </div>
       </div>
+
+      <PizzaOrder />
     </div>
   );
 }

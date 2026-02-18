@@ -16,37 +16,28 @@ interface Props {
 
 export default function Leaderboard({ entries, title }: Props) {
   return (
-    <div className="glass-card p-6">
-      <h3 className="text-lg font-semibold text-wii-ink mb-4">{title}</h3>
-      <div className="space-y-2">
-        {entries.length === 0 && (
-          <p className="text-wii-muted text-sm text-center py-4">No data yet</p>
-        )}
-        {entries.map((entry, i) => (
+    <div className="glass-card p-5">
+      {title && (
+        <div className="mb-3">
+          <h3 className="text-sm font-semibold text-wii-muted">{title}</h3>
+        </div>
+      )}
+
+      <div className="space-y-1">
+        {entries.map((entry) => (
           <div
             key={entry.address}
-            className={clsx(
-              "flex items-center justify-between p-3 rounded-xl transition-colors",
-              i < 3 ? "bg-studio-blue/5" : "bg-wii-mist/50"
-            )}
+            className="flex items-center justify-between py-2.5 border-b border-wii-glass/50 last:border-0"
           >
             <div className="flex items-center gap-3">
-              <span className={clsx(
-                "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold",
-                i === 0 ? "bg-ring-orange/15 text-ring-orange" :
-                i === 1 ? "bg-wii-glass/50 text-wii-muted" :
-                i === 2 ? "bg-ring-pink/15 text-ring-pink" :
-                "bg-wii-mist text-wii-muted"
-              )}>
-                {entry.rank}
-              </span>
-              <span className="text-wii-ink text-sm font-medium">
+              <span className="text-sm font-bold text-wii-muted w-5 text-right">{entry.rank}</span>
+              <span className="text-sm font-medium text-wii-ink">
                 {entry.address.slice(0, 6)}...{entry.address.slice(-4)}
               </span>
             </div>
             <div className="text-right">
-              <div className="text-wii-ink font-semibold text-sm">{entry.value}</div>
-              <div className="text-wii-muted text-xs">{entry.label}</div>
+              <div className="text-sm font-semibold text-wii-ink">{entry.value}</div>
+              <div className="text-xs text-wii-muted">{entry.label}</div>
             </div>
           </div>
         ))}
