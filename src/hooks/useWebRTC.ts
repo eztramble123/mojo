@@ -9,20 +9,29 @@ export type DataMessage =
   | { type: "betPlaced"; bettor: string; amount: string; isUp: boolean }
   | { type: "viewerJoined"; address: string };
 
-function getPeerConfig(): { host: string; port: number; path: string; secure: boolean } | undefined {
+function getPeerConfig(): { host: string; port: number; path: string; secure: boolean } {
   const url = process.env.NEXT_PUBLIC_PEER_SERVER_URL;
-  if (!url) return undefined;
-  try {
-    const parsed = new URL(url);
-    return {
-      host: parsed.hostname,
-      port: parsed.port ? Number(parsed.port) : parsed.protocol === "https:" ? 443 : 80,
-      path: parsed.pathname === "/" ? "/myapp" : parsed.pathname,
-      secure: parsed.protocol === "https:",
-    };
-  } catch {
-    return undefined;
+  if (url) {
+    try {
+      const parsed = new URL(url);
+      return {
+        host: parsed.hostname,
+        port: parsed.port ? Number(parsed.port) : parsed.protocol === "https:" ? 443 : 80,
+        path: parsed.pathname === "/" ? "/myapp" : parsed.pathname,
+        secure: parsed.protocol === "https:",
+      };
+    } catch {
+      // fall through to default
+    }
   }
+  // Default: localhost in dev, must set env var in production
+  const isLocal = typeof window !== "undefined" && window.location.hostname === "localhost";
+  return {
+    host: isLocal ? "localhost" : "0.peerjs.com",
+    port: isLocal ? 9000 : 443,
+    path: isLocal ? "/myapp" : "/",
+    secure: !isLocal,
+  };
 }
 
 export function useBroadcaster(sessionId: string | null) {
@@ -48,8 +57,7 @@ export function useBroadcaster(sessionId: string | null) {
       streamRef.current = stream;
 
       const { default: Peer } = await import("peerjs");
-      const peerOpts = getPeerConfig();
-      const peer = new Peer(`mojo-session-${sessionId}`, peerOpts ?? {});
+      const peer = new Peer(`mojo-session-${sessionId}`, getPeerConfig());
       peerRef.current = peer;
 
       peer.on("open", () => {
@@ -148,8 +156,7 @@ export function useViewer(sessionId: string | null) {
     if (!sessionId) return;
 
     const { default: Peer } = await import("peerjs");
-    const peerOpts = getPeerConfig();
-    const peer = new Peer(peerOpts ?? {});
+    const peer = new Peer(getPeerConfig());
     peerRef.current = peer;
 
     peer.on("open", () => {

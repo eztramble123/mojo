@@ -113,6 +113,16 @@ export default function ExercisePage() {
     createSession(exerciseType, BigInt(targetReps));
   }, [isConnected, createSession, exerciseType, targetReps, resetWrite]);
 
+  // Log transaction errors for debugging
+  useEffect(() => {
+    if (writeError) {
+      console.error("Transaction error:", writeError);
+      console.error("Error name:", writeError.name);
+      console.error("Error message:", writeError.message);
+      console.error("Error cause:", (writeError as any).cause);
+    }
+  }, [writeError]);
+
   // Optimistic: go to exercising as soon as wallet signs (hash exists)
   useEffect(() => {
     if (createHash && stage === "walkthrough") {
@@ -216,7 +226,7 @@ export default function ExercisePage() {
           targetReps={targetReps}
           onContinue={handleWalkthroughContinue}
           isLoading={isCreating}
-          error={writeError ? "Transaction rejected or failed" : null}
+          error={writeError ? writeError.message || "Transaction rejected or failed" : null}
         />
       )}
 
